@@ -1,0 +1,38 @@
+<?php
+/**
+* Implements hook_schema().
+*/
+
+function d7_template_install() {}
+
+function d7_template_uninstall() {}
+
+function d7_template_schema() {
+  $schema['d7_template_foo'] = array(
+    'fields' => array(
+      'foo_id' => array(
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE
+      ),
+      'foo_int_example' => array(
+        'type' => 'int'
+      ),
+      'foo_varchar_example' => array(
+        'type' => 'varchar', 
+        'length' => 255
+      ),
+    ),
+    'indexes' => array(
+      'foo_int_example'     => array('foo_int_example'),
+      'foo_varchar_example' => array('foo_varchar_example'),
+    ),
+    'primary key' => array(
+      'foo_id'
+    ),
+  );
+  
+  return $schema;
+}
+
+?>

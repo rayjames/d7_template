@@ -1,0 +1,4 @@
+name = D7 Template
+description = D7 Custom Module Bare Bones Template to use for custom module building
+package = D7 Template Modules
+core = 7.x

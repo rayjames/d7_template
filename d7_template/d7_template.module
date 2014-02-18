@@ -1,0 +1,33 @@
+<?php
+/**
+* @file
+* A custom module template.   Oh yeah!!  :)
+*/
+
+/**
+* start adding custom "hooks below this line.  
+* Here is a link to get you started - https://drupal.org/developing/modules/7 .  
+* I added an example hook_menu below with an example page callback to go with it."
+*
+* Note: every time you see the word "hook" you replace that with the name of your module.
+* example: hook_menu() would become d7_template_menu() for this particular module since the name of our module is d7_template.
+*/
+
+function d7_template_menu() {
+  $items['foo'] = array(
+    'title' => 'Foo Page', // Either set this here or using drupal_set_title() in the page callback itself.
+    'page callback' => 'foo_page_callback', // this is the name of your function.  Name it whatever you want.
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+function foo_page_callback() {
+  $output = ''; // whatever you put in this variable will be output to the screen when someone visits the link you set in hook_menu above.
+  
+  $output .= 'Hello World!'; // just keep adding to the variable until you have everything you need for this particular page.
+  
+  return $output; // required.  Sends the output to the page.
+}
