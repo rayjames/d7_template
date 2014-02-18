@@ -10,4 +10,6 @@ Steps to get this on your development system:
 
 4. Navigate to this custom folder in git.
 
-5. in git, issue the pull command - git pull 
+5. in git, issue the pull command - git clone https://github.com/rayjames/d7_template.git
+
+Optional - If you are not a contributor and want to add or make changes to be contributed back, please fork this repository in order to make those changes.
