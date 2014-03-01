@@ -15,12 +15,36 @@
 
 function d7_template_menu() {
   $items['foo'] = array(
-    'title' => 'Foo Page', // Either set this here or using drupal_set_title() in the page callback itself.
-    'page callback' => 'foo_page_callback', // this is the name of your function.  Name it whatever you want.
-    'access arguments' => array('access content'),
-    'type' => MENU_CALLBACK,
+    'title'             => 'Foo Page', // Either set this here or using drupal_set_title() in the page callback itself.
+    'page callback'     => 'foo_page_callback', // this is the name of your function.  Name it whatever you want.
+    'access arguments'  => array('access content'),
+    'type'              => MENU_CALLBACK,
   );
-
+  
+  $items['foo/insert-foo'] = array(
+    'title'             => 'Insert Foo', // Either set this here or using drupal_set_title() in the page callback itself.
+    'page callback'     => 'drupal_get_form', // Instead of calling a custom function you are calling a function to build a form.
+    'page arguments'    => array('d7_template_foo_insert_into_foo_form'), // This is the name of the form you want returned when someone visits the page. Name it whatever but make it relevant.
+    'access arguments'  => array('access content'),
+    'type'              => MENU_CALLBACK,
+  );
+  
+  $items['foo/%/edit-foo'] = array(
+    'title'             => 'Edit Foo', // Either set this here or using drupal_set_title() in the page callback itself.
+    'page callback'     => 'drupal_get_form', // Instead of calling a custom function you are calling a function to build a form.
+    'page arguments'    => array('d7_template_foo_edit_foo_form', 1), // Notice the 1, that is the % argument which is actually the foo_id.
+    'access arguments'  => array('access content'),
+    'type'              => MENU_CALLBACK,
+  );
+  
+  $items['foo/%/delete-foo'] = array(
+    'title'             => 'Edit Foo', // Either set this here or using drupal_set_title() in the page callback itself.
+    'page callback'     => 'drupal_get_form', // Instead of calling a custom function you are calling a function to build a form.
+    'page arguments'    => array('d7_template_foo_delete_foo_form', 1), // Notice the 1, that is the % argument which is actually the foo_id.
+    'access arguments'  => array('access content'),
+    'type'              => MENU_CALLBACK,
+  );
+  
   return $items;
 }
 
@@ -31,3 +55,206 @@ function foo_page_callback() {
   
   return $output; // required.  Sends the output to the page.
 }
+
+
+function d7_template_foo_insert_into_foo_form($form, &$form_state) { // the $form, &$form_state must always be in a form function
+  $form['foo'] = array(
+    '#type' => 'fieldset',
+    '#collapsible' => FALSE,
+  );
+  
+  $form['foo']['foo_int_example'] = array(
+    '#type'     => 'textfield',
+    '#title'    => t('Enter an integer'),
+    '#required' => true,
+  );
+  
+  $form['foo']['foo_varchar_example'] = array(
+    '#type'     => 'textfield',
+    '#title'    => t('Enter a word or words'),
+    '#required' => true,
+  );
+  
+  $form['submit'] = array(
+    '#type'   => 'submit',
+    '#value'  => t('Submit'),
+  );
+  
+  return $form;
+}
+
+function d7_template_foo_insert_into_foo_form_validate($form, &$form_state) { // validates the input for the form
+  if (!is_numeric($form_state['values']['foo_int_example'])) {
+    form_set_error('foo_int_example', t('The Enter an integer field has illegal characters in it.  Please use only numbers.'));
+  }
+  if (!ctype_alnum($form_state['values']['foo_varchar_example'])) {
+    form_set_error('foo_varchar_example', t('The Enter a word or words field has illegal characters in it.'));
+  }
+}
+
+function d7_template_foo_insert_into_foo_form_submit($form, &$form_state) { // submits the data after validation.  This is where you put the data where you need it.
+  $scm = db_insert('d7_template_foo')
+    ->fields(array(
+      'foo_int_example'     => $form_state['values']['foo_int_example'],
+      'foo_varchar_example' => $form_state['values']['foo_varchar_example'],
+    ))
+    ->execute();
+    
+    drupal_set_message('Foo data inserted into the database successfully. Thanks.');
+    
+    //redirect the user to the foo page.
+    $form_state['redirect'] = 'foo';
+}
+
+function d7_template_foo_edit_foo_form($form, &$form_state, $foo_id) {// foo_id gets passed in from the menu callback.
+  
+  $foo = '';//Reset.  
+  $query = db_select('d7_template_foo', 'dtf');
+  $query
+    ->fields('dtf', array('foo_id', 'foo_int_example', 'foo_varchar_example'))
+    ->condition('foo_id', $foo_id);
+  $foo = $query->execute()->fetchObject();
+  
+  $form['foo'] = array(
+    '#type' => 'fieldset',
+    '#collapsible' => FALSE,
+  );
+  
+  $form['foo']['foo_int_example'] = array(
+    '#type'     => 'textfield',
+    '#title'    => t('Enter an integer'),
+    '#default_value' => $foo->foo_int_example,
+    '#required' => true,
+  );
+  
+  $form['foo']['foo_varchar_example'] = array(
+    '#type'     => 'textfield',
+    '#title'    => t('Enter a word or words'),
+    '#default_value' => $foo->foo_varchar_example,
+    '#required' => true,
+  );
+  
+  $form['foo']['foo_id'] = array(
+    '#type' => 'value', 
+    '#value' => $foo->foo_id, // pass the foo_id to the validate and submit functions
+  );
+  
+  $form['submit'] = array(
+    '#type'   => 'submit',
+    '#value'  => t('Submit'),
+  );
+  
+  return $form;
+}
+
+function d7_template_foo_edit_foo_form_validate($form, &$form_state) {
+  if (!is_numeric($form_state['values']['foo_int_example'])) {
+    form_set_error('foo_int_example', t('The Enter an integer field has illegal characters in it.  Please use only numbers.'));
+  }
+  if (!ctype_alnum($form_state['values']['foo_varchar_example'])) {
+    form_set_error('foo_varchar_example', t('The Enter a word or words field has illegal characters in it.'));
+  }
+}
+
+function d7_template_foo_edit_foo_form_submit($form, &$form_state) {
+  $u = db_update('d7_template_foo')
+  ->fields(array(
+    'foo_int_example' => $form_state['values']['foo_int_example'],
+    'foo_varchar_example'        => $form_state['values']['foo_varchar_example'],
+  ))
+  ->condition('foo_id', $form_state['values']['foo_id'])
+  ->execute();
+  
+  drupal_set_message('Foo updated successfully. Thanks.');
+    
+    //redirect the user to the foo page.
+    $form_state['redirect'] = 'foo';
+}
+
+function d7_template_foo_delete_foo_form($form, &$form_state, $foo_id) {// foo_id gets passed in from the menu callback.
+  $form['message1'] = array(
+    '#type' => 'item',
+    '#markup' => '<div>Are you sure you want to delete this foo?</div>',
+  );
+  
+  $form['message2'] = array(
+    '#type' => 'item',
+    '#markup' => '<div>This will delete all data on this foo and cannot be undone.</div><br />',
+  );
+  
+  $form['foo_id'] = array(
+    '#type'           => 'value',
+    '#value'          => $couponid,
+  );
+  
+  $form['submit1'] = array(
+    '#type'           => 'submit',
+    '#value'          => t('Confirm Delete'),
+  );
+  $form['submit2'] = array(
+    '#type'           => 'submit',
+    '#value'          => t('Cancel'),
+    '#submit'         => array('d7_template_foo_delete_foo_cancel'), 
+  );
+  return $form;
+}
+
+function d7_template_foo_delete_foo_form_validate($form, &$form_state) {
+  // empty cause we don't need it.
+}
+
+function d7_template_foo_delete_foo_form_submit($form, &$form_state) {
+  db_delete('d7_template_foo')->condition('foo_id', $form_state['values']['foo_id'])->execute();
+  drupal_set_message(t("Foo deleted succesfully."), 'status');
+  $form_state['redirect'] = 'foo';
+}
+
+function d7_template_foo_delete_foo_cancel($form, &$form_state) {
+  $form_state['redirect'] = 'foo';
+}
+
+
+// Database calls cheat sheet
+
+//$result = db_query("SELECT foo_id FROM {d7_template_foo} WHERE foo_id = :foo_id", array(':foo_id' => $foo_id))->fetchField();
+
+/*
+ $query = db_select('d7_template_foo', 'dtf');
+  $query->fields('dtf', array('foo_int_example', 'foo_varchar_example'))
+        ->condition('foo_id', $foo_id);
+  $result = $query->execute();
+  $foo_array = array();
+  while ($record = $result->fetchAssoc()) {
+    $foo_array[] = $record;
+  }
+  //*/
+  
+  /*
+  $foo = '';//Reset.  
+  $query = db_select('d7_template_foo', 'dtf');
+  $query
+    ->fields('dtf', array('foo_id', 'foo_int_example', 'foo_varchar_example'))
+    ->condition('foo_id', $foo_id);
+  $foo = $query->execute()->fetchObject();
+  //*/
+  
+  /*
+  $scm = db_insert('d7_template_foo')
+    ->fields(array(
+      'foo_int_example'     => $form_state['values']['foo_int_example'],
+      'foo_varchar_example' => $form_state['values']['foo_varchar_example'],
+    ))
+    ->execute();
+  //*/
+  
+  /*
+  $u = db_update('d7_template_foo')
+  ->fields(array(
+    'foo_int_example' => $form_state['values']['foo_int_example'],
+    'foo_varchar_example'        => $form_state['values']['foo_varchar_example'],
+  ))
+  ->condition('foo_id', $form_state['values']['foo_id'])
+  ->execute();
+  //*/
+  
+  // db_delete('d7_template_foo')->condition('foo_id', $form_state['values']['foo_id'])->execute();
